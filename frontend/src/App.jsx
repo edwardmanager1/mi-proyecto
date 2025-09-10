@@ -8,7 +8,6 @@ function App() {
   const [backendData, setBackendData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isLogin, setIsLogin] = useState(true); // true = login, false = register
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Estado para el formulario de login
@@ -95,7 +94,6 @@ function App() {
       });
 
       // Cambiar a login después de registrar
-      setIsLogin(true);
     } catch (err) {
       setError(err.message);
       console.error("Error en registro:", err);
