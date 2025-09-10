@@ -1,14 +1,15 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
+import AuthForm from "./components/AuthForm/AuthForm";
 import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0);
   const [backendData, setBackendData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isLogin, setIsLogin] = useState(true); // true = login, false = register
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Estado para el formulario de login
   const [loginData, setLoginData] = useState({
@@ -43,6 +44,10 @@ function App() {
       }
 
       const data = await response.json();
+      // Guardar token y datos de usuario en localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setIsAuthenticated(true); // ← Agrega esta línea
       setBackendData(data);
       alert("✅ Login exitoso! Token: " + data.token.substring(0, 20) + "...");
 
@@ -117,6 +122,14 @@ function App() {
     });
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsAuthenticated(false);
+    setBackendData({});
+    alert("✅ Sesión cerrada exitosamente");
+  };
+
   return (
     <>
       <div>
@@ -126,116 +139,36 @@ function App() {
         <a href="https://react.dev" target="_blank">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
+        {isAuthenticated && (
+          <button
+            onClick={handleLogout}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              background: "#ff4757",
+              color: "white",
+              border: "none",
+              padding: "10px 15px",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            🚪 Cerrar Sesión
+          </button>
+        )}
       </div>
       <h1>Vite + React + Authentication</h1>
 
-      {/* Selector Login/Register */}
-      <div style={{ marginBottom: "20px" }}>
-        <button
-          onClick={() => setIsLogin(true)}
-          style={{
-            marginRight: "10px",
-            backgroundColor: isLogin ? "#6e8efb" : "#ccc",
-          }}
-        >
-          Login
-        </button>
-        <button
-          onClick={() => setIsLogin(false)}
-          style={{ backgroundColor: !isLogin ? "#6e8efb" : "#ccc" }}
-        >
-          Registro
-        </button>
-      </div>
-
-      {/* Formulario de Login */}
-      {isLogin && (
-        <div className="card">
-          <h2>🔐 Iniciar Sesión</h2>
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: "15px" }}>
-              <label>Email:</label>
-              <input
-                type="email"
-                name="email"
-                value={loginData.email}
-                onChange={handleLoginChange}
-                placeholder="tu.email@ejemplo.com"
-                required
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
-
-            <div style={{ marginBottom: "15px" }}>
-              <label>Contraseña:</label>
-              <input
-                type="password"
-                name="password"
-                value={loginData.password}
-                onChange={handleLoginChange}
-                placeholder="Tu contraseña"
-                required
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
-
-            <button type="submit" disabled={loading}>
-              {loading ? "Iniciando sesión..." : "🚀 Iniciar Sesión"}
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Formulario de Registro */}
-      {!isLogin && (
-        <div className="card">
-          <h2>📝 Registro de Usuario</h2>
-          <form onSubmit={handleRegister}>
-            <div style={{ marginBottom: "15px" }}>
-              <label>Nombre completo:</label>
-              <input
-                type="text"
-                name="name"
-                value={registerData.name}
-                onChange={handleRegisterChange}
-                placeholder="Ej: Edward Sánchez"
-                required
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
-
-            <div style={{ marginBottom: "15px" }}>
-              <label>Email:</label>
-              <input
-                type="email"
-                name="email"
-                value={registerData.email}
-                onChange={handleRegisterChange}
-                placeholder="tu.email@ejemplo.com"
-                required
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
-
-            <div style={{ marginBottom: "15px" }}>
-              <label>Contraseña:</label>
-              <input
-                type="password"
-                name="password"
-                value={registerData.password}
-                onChange={handleRegisterChange}
-                placeholder="Mínimo 6 caracteres"
-                required
-                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-              />
-            </div>
-
-            <button type="submit" disabled={loading}>
-              {loading ? "Registrando..." : "📋 Registrar Usuario"}
-            </button>
-          </form>
-        </div>
-      )}
+      <AuthForm
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        loginData={loginData}
+        registerData={registerData}
+        onLoginChange={handleLoginChange}
+        onRegisterChange={handleRegisterChange}
+        loading={loading}
+      />
 
       {/* Mostrar errores */}
       {error && (
