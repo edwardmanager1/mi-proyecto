@@ -8,7 +8,23 @@ function AuthForm({
   onLoginChange,
   onRegisterChange,
   loading,
+  passwordError,
+  passwordStrength,
+  onTabChange,
 }) {
+  const handleTabClick = (tabName) => {
+    document
+      .querySelectorAll(".form")
+      .forEach((form) => form.classList.remove("active"));
+    document
+      .querySelectorAll(".tab")
+      .forEach((tab) => tab.classList.remove("active"));
+
+    document.getElementById(`${tabName}-form`).classList.add("active");
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add("active");
+    if (typeof onTabChange === "function") onTabChange();
+  };
+
   return (
     <div className="container">
       <div className="illustration">
@@ -25,15 +41,23 @@ function AuthForm({
 
       <div className="form-container">
         <div className="tabs">
-          <div className="tab active" data-tab="login">
+          <div
+            className="tab active"
+            data-tab="login"
+            onClick={() => handleTabClick("login")}
+          >
             Iniciar Sesión
           </div>
-          <div className="tab" data-tab="register">
+          <div
+            className="tab"
+            data-tab="register"
+            onClick={() => handleTabClick("register")}
+          >
             Registrarse
           </div>
         </div>
 
-        <form id="login-form" className="form active">
+        <form id="login-form" className="form active" onSubmit={onLogin}>
           <h2 className="form-title">Bienvenido de nuevo</h2>
           <p className="form-subtitle">Ingresa a tu cuenta para continuar</p>
 
@@ -70,7 +94,7 @@ function AuthForm({
             </a>
           </div>
 
-          <button type="submit" className="btn" onClick={onLogin}>
+          <button type="submit" className="btn">
             {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
 
@@ -92,13 +116,24 @@ function AuthForm({
 
           <div className="form-footer">
             ¿No tienes una cuenta?{" "}
-            <a href="#" id="go-to-register">
+            <a
+              href="#"
+              id="go-to-register"
+              onClick={() => handleTabClick("register")}
+            >
               Regístrate ahora
             </a>
           </div>
         </form>
 
-        <form id="register-form" className="form">
+        <form
+          id="register-form"
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onRegister(e);
+          }}
+        >
           <h2 className="form-title">Crear una cuenta</h2>
           <p className="form-subtitle">Completa tus datos para registrarte</p>
 
@@ -152,6 +187,24 @@ function AuthForm({
             />
           </div>
 
+          {passwordStrength && (
+            <div
+              style={{
+                color: passwordStrength.includes("Muy fuerte")
+                  ? "green"
+                  : passwordStrength.includes("Fuerte")
+                  ? "blue"
+                  : passwordStrength.includes("Media")
+                  ? "orange"
+                  : "red",
+                fontSize: "12px",
+                marginTop: "5px",
+              }}
+            >
+              Fortaleza: {passwordStrength}
+            </div>
+          )}
+
           <div className="input-group">
             <i className="fas fa-lock"></i>
             <input
@@ -164,7 +217,13 @@ function AuthForm({
             />
           </div>
 
-          <button type="submit" className="btn" onClick={onRegister}>
+          {passwordError && (
+            <div style={{ color: "red", fontSize: "14px", marginTop: "5px" }}>
+              {passwordError}
+            </div>
+          )}
+
+          <button type="submit" className="btn">
             {loading ? "Registrando..." : "Crear Cuenta"}
           </button>
 
@@ -186,7 +245,11 @@ function AuthForm({
 
           <div className="form-footer">
             ¿Ya tienes una cuenta?{" "}
-            <a href="#" id="go-to-login">
+            <a
+              href="#"
+              id="go-to-login"
+              onClick={() => handleTabClick("login")}
+            >
               Inicia sesión
             </a>
           </div>

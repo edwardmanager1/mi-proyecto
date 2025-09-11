@@ -9,6 +9,17 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Primero define validatePasswordStrength
+  const validatePasswordStrength = (password) => {
+    if (password.length < 8) return "Muy débil - Mínimo 8 caracteres";
+    if (!/[A-Z]/.test(password)) return "Débil - Incluye mayúsculas";
+    if (!/[0-9]/.test(password)) return "Media - Incluye números";
+    if (!/[!@#$%^&*]/.test(password)) return "Fuerte - Incluye símbolos";
+    return "Muy fuerte";
+  };
 
   // Estado para el formulario de login
   const [loginData, setLoginData] = useState({
@@ -21,6 +32,8 @@ function App() {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "", // ← AÑADE ESTE CAMPO
+    lastName: "", // ← Y ESTE TAMBIÉN
   });
 
   // Función para login
@@ -66,6 +79,22 @@ function App() {
   // Función para registro
   const handleRegister = async (e) => {
     e.preventDefault();
+    // Al inicio de handleRegister, añade:
+    if (registerData.password !== registerData.confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      setLoading(false);
+
+      return; // Detiene la ejecución
+    }
+
+    // Después de la validación de coincidencia, añade:
+    const strength = validatePasswordStrength(registerData.password);
+    if (strength.includes("Muy débil") || strength.includes("Débil")) {
+      setError("La contraseña es demasiado débil: " + strength);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -84,13 +113,16 @@ function App() {
 
       const data = await response.json();
       setBackendData(data);
-      alert("✅ Usuario registrado exitosamente!");
+      setSuccessMessage("✅ Usuario registrado exitosamente!");
+      setError(null);
 
-      // Limpiar formulario
+      // Limpiar formulario COMPLETO
       setRegisterData({
         name: "",
         email: "",
         password: "",
+        confirmPassword: "",
+        lastName: "",
       });
 
       // Cambiar a login después de registrar
@@ -118,6 +150,10 @@ function App() {
       ...registerData,
       [name]: value,
     });
+
+    if (name === "password") {
+      setPasswordStrength(validatePasswordStrength(value));
+    }
   };
 
   const handleLogout = () => {
@@ -131,12 +167,6 @@ function App() {
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
         {isAuthenticated && (
           <button
             onClick={handleLogout}
@@ -156,7 +186,6 @@ function App() {
           </button>
         )}
       </div>
-      <h1>Vite + React + Authentication</h1>
 
       <AuthForm
         onLogin={handleLogin}
@@ -166,6 +195,12 @@ function App() {
         onLoginChange={handleLoginChange}
         onRegisterChange={handleRegisterChange}
         loading={loading}
+        passwordError={error}
+        passwordStrength={passwordStrength}
+        onTabChange={() => {
+          setSuccessMessage("");
+          setError("");
+        }}
       />
 
       {/* Mostrar errores */}
@@ -183,17 +218,65 @@ function App() {
         </div>
       )}
 
-      {/* Mostrar respuesta del servidor */}
-      {backendData.message && (
-        <div className="card">
-          <h3>Respuesta del servidor:</h3>
-          <pre>{JSON.stringify(backendData, null, 2)}</pre>
+      {successMessage && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "30px",
+              borderRadius: "12px",
+              textAlign: "center",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div style={{ fontSize: "50px", marginBottom: "15px" }}>✅</div>
+            <h3 style={{ marginBottom: "20px", color: "#2e7d32" }}>
+              {successMessage}
+            </h3>
+            <button
+              onClick={() => {
+                setSuccessMessage("");
+                setPasswordStrength("");
+                // Cambiar automáticamente a login
+                document
+                  .querySelectorAll(".form")
+                  .forEach((form) => form.classList.remove("active"));
+                document
+                  .querySelectorAll(".tab")
+                  .forEach((tab) => tab.classList.remove("active"));
+                document.getElementById("login-form").classList.add("active");
+                document
+                  .querySelector('[data-tab="login"]')
+                  .classList.add("active");
+              }}
+              style={{
+                background: "#4361ee",
+                color: "white",
+                border: "none",
+                padding: "12px 25px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
+              Aceptar
+            </button>
+          </div>
         </div>
       )}
-
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
