@@ -3,12 +3,15 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import AuthForm from "./components/AuthForm/AuthForm";
 import "./App.css";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 function App() {
   const [backendData, setBackendData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    localStorage.getItem("token") ? true : false
+  );
   const [passwordStrength, setPasswordStrength] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -166,8 +169,8 @@ function App() {
 
   return (
     <>
-      <div>
-        {isAuthenticated && (
+      {isAuthenticated ? (
+        <>
           <button
             onClick={handleLogout}
             style={{
@@ -184,101 +187,68 @@ function App() {
           >
             🚪 Cerrar Sesión
           </button>
-        )}
-      </div>
+          <Dashboard />
+        </>
+      ) : (
+        <>
+          <div>
+            <a href="https://vite.dev" target="_blank">
+              <img src={viteLogo} className="logo" alt="Vite logo" />
+            </a>
+            <a href="https://react.dev" target="_blank">
+              <img src={reactLogo} className="logo react" alt="React logo" />
+            </a>
+          </div>
+          <h1>Vite + React + Authentication</h1>
 
-      <AuthForm
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        loginData={loginData}
-        registerData={registerData}
-        onLoginChange={handleLoginChange}
-        onRegisterChange={handleRegisterChange}
-        loading={loading}
-        passwordError={error}
-        passwordStrength={passwordStrength}
-        onTabChange={() => {
-          setSuccessMessage("");
-          setError("");
-        }}
-      />
-
-      {/* Mostrar errores */}
-      {error && (
-        <div
-          style={{
-            color: "red",
-            marginTop: "20px",
-            padding: "10px",
-            background: "#ffe6e6",
-            borderRadius: "5px",
-          }}
-        >
-          Error: {error}
-        </div>
-      )}
-
-      {successMessage && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: "30px",
-              borderRadius: "12px",
-              textAlign: "center",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+          <AuthForm
+            onLogin={handleLogin}
+            onRegister={handleRegister}
+            loginData={loginData}
+            registerData={registerData}
+            onLoginChange={handleLoginChange}
+            onRegisterChange={handleRegisterChange}
+            loading={loading}
+            passwordError={error}
+            passwordStrength={passwordStrength}
+            onTabChange={() => {
+              setSuccessMessage("");
+              setError("");
             }}
-          >
-            <div style={{ fontSize: "50px", marginBottom: "15px" }}>✅</div>
-            <h3 style={{ marginBottom: "20px", color: "#2e7d32" }}>
-              {successMessage}
-            </h3>
-            <button
-              onClick={() => {
-                setSuccessMessage("");
-                setPasswordStrength("");
-                // Cambiar automáticamente a login
-                document
-                  .querySelectorAll(".form")
-                  .forEach((form) => form.classList.remove("active"));
-                document
-                  .querySelectorAll(".tab")
-                  .forEach((tab) => tab.classList.remove("active"));
-                document.getElementById("login-form").classList.add("active");
-                document
-                  .querySelector('[data-tab="login"]')
-                  .classList.add("active");
-              }}
+          />
+
+          {/* Mostrar errores */}
+          {error && (
+            <div
               style={{
-                background: "#4361ee",
-                color: "white",
-                border: "none",
-                padding: "12px 25px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "16px",
+                color: "red",
+                marginTop: "20px",
+                padding: "10px",
+                background: "#ffe6e6",
+                borderRadius: "5px",
               }}
             >
-              Aceptar
-            </button>
-          </div>
-        </div>
+              Error: {error}
+            </div>
+          )}
+
+          {successMessage && (
+            <div
+              style={{
+                color: "green",
+                background: "#e8f5e9",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #4caf50",
+                margin: "15px 0",
+              }}
+            >
+              ✅ {successMessage}
+            </div>
+          )}
+        </>
       )}
     </>
   );
 }
-
 export default App;

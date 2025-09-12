@@ -4,8 +4,6 @@ require("dotenv").config();
 const pool = require("./src/config/database");
 
 // Importar rutas
-const authRoutes = require("./src/routes/authRoutes");
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -14,7 +12,6 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas
-app.use("/api/auth", authRoutes);
 
 // Ruta de prueba de base de datos
 app.get("/api/db-test", async (req, res) => {
