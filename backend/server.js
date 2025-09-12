@@ -3,7 +3,6 @@ const cors = require("cors");
 require("dotenv").config();
 const pool = require("./src/config/database");
 
-// Importar rutas
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -11,7 +10,28 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Rutas
+// Ruta raíz - Mensaje de bienvenida
+app.get("/", (req, res) => {
+  res.json({
+    message: "🚀 Backend de Marketing Digital funcionando",
+    version: "1.0",
+    endpoints: {
+      auth: "/api/login & /api/register",
+      test: "/api/test",
+      db_test: "/api/db-test",
+      admin: "/api/admin/dashboard (solo administradores)",
+    },
+  });
+});
+
+// Ruta de prueba del servidor
+app.get("/api/test", (req, res) => {
+  res.json({
+    message: "¡Backend funcionando correctamente!",
+    status: 200,
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Ruta de prueba de base de datos
 app.get("/api/db-test", async (req, res) => {
@@ -32,42 +52,6 @@ app.get("/api/db-test", async (req, res) => {
   }
 });
 
-// Ruta de prueba del servidor
-app.get("/api/test", (req, res) => {
-  res.json({
-    message: "¡Backend funcionando correctamente!",
-    status: 200,
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Ruta de salud/health check
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Servidor en funcionamiento",
-    environment: process.env.NODE_ENV,
-  });
-});
-
-// Ruta temporal para testear la tabla users
-app.get("/api/test-users", async (req, res) => {
-  try {
-    const User = require("./src/models/User");
-    const users = await User.getAll();
-    res.json({
-      message: "✅ Tabla users funciona correctamente",
-      users: users,
-      count: users.length,
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: "❌ Error accediendo a la tabla users",
-      details: error.message,
-    });
-  }
-});
-
 // Ruta para registrar nuevos usuarios
 app.post("/api/register", async (req, res) => {
   try {
@@ -80,10 +64,10 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    // Separar nombre y apellido (asumiendo que el nombre completo viene en "name")
+    // Separar nombre y apellido
     const nameParts = name.split(" ");
-    const nombre = nameParts[0]; // Primer nombre
-    const apellido = nameParts.slice(1).join(" ") || ""; // El resto como apellido
+    const nombre = nameParts[0];
+    const apellido = nameParts.slice(1).join(" ") || "";
 
     // 1. Verificar si el usuario ya existe
     const userExists = await pool.query(
@@ -97,27 +81,28 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    // 2. Hashear el password antes de guardar
+    // 2. Hashear el password
     const bcrypt = require("bcryptjs");
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // 3. Insertar en la base de datos con password hasheado
+    // 3. Insertar en la base de datos CON ROL
     const result = await pool.query(
-      "INSERT INTO users (nombre, apellido, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING *",
-      [nombre, apellido, email, hashedPassword] // ← Ahora envía el password hasheado
+      "INSERT INTO users (nombre, apellido, email, password_hash, rol) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [nombre, apellido, email, hashedPassword, "usuario"]
     );
 
     const newUser = result.rows[0];
 
-    // 3. Responder con éxito
+    // 4. Responder con éxito
     res.status(201).json({
-      message: "✅ Usuario registrado exitosamente en la base de datos",
+      message: "✅ Usuario registrado exitosamente",
       user: {
         id: newUser.id,
         nombre: newUser.nombre,
         apellido: newUser.apellido,
         email: newUser.email,
+        rol: newUser.rol,
         created_at: newUser.created_at,
       },
     });
@@ -129,8 +114,6 @@ app.post("/api/register", async (req, res) => {
     });
   }
 });
-
-//// codigo IA
 
 // Ruta para login de usuarios
 app.post("/api/login", async (req, res) => {
@@ -157,7 +140,6 @@ app.post("/api/login", async (req, res) => {
 
     const user = result.rows[0];
 
-    // 2. Verificar password (por ahora comparación directa ya que no está hasheado)
     // 2. Verificar password hasheado
     const bcrypt = require("bcryptjs");
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
@@ -168,18 +150,19 @@ app.post("/api/login", async (req, res) => {
       });
     }
 
-    // 3. Generar token JWT (usaremos una clave temporal por ahora)
+    // 3. Generar token JWT
     const jwt = require("jsonwebtoken");
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
+        rol: user.rol,
       },
       process.env.JWT_SECRET || "clave_secreta_temporal",
       { expiresIn: "24h" }
     );
 
-    // 4. Responder con éxito y token
+    // 4. Responder con éxito INCLUYENDO EL ROL
     res.json({
       message: "✅ Login exitoso",
       token: token,
@@ -188,6 +171,7 @@ app.post("/api/login", async (req, res) => {
         nombre: user.nombre,
         apellido: user.apellido,
         email: user.email,
+        rol: user.rol, // ← ROL INCLUIDO
       },
     });
   } catch (error) {
@@ -198,8 +182,6 @@ app.post("/api/login", async (req, res) => {
     });
   }
 });
-
-////// final IA
 
 // Middleware de autenticación JWT
 const authMiddleware = async (req, res, next) => {
@@ -222,7 +204,7 @@ const authMiddleware = async (req, res, next) => {
 
     // 3. Buscar usuario en la base de datos
     const result = await pool.query(
-      "SELECT id, nombre, apellido, email FROM users WHERE id = $1",
+      "SELECT id, nombre, apellido, email, rol FROM users WHERE id = $1",
       [decoded.id]
     );
 
@@ -232,15 +214,32 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // 4. Agregar usuario al request
+    // 4. Agregar usuario al request (INCLUYENDO ROL)
     req.user = result.rows[0];
-    next(); // Continuar a la ruta protegida
+    next();
   } catch (error) {
     console.error("❌ Error en middleware de auth:", error);
     res.status(401).json({
       error: "Token inválido o expirado",
     });
   }
+};
+
+// Middleware de verificación de roles
+const requireRole = (allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
+
+    if (!allowedRoles.includes(req.user.rol)) {
+      return res.status(403).json({
+        error: "Acceso denegado. Permisos insuficientes",
+      });
+    }
+
+    next();
+  };
 };
 
 // Ruta protegida de ejemplo - Solo usuarios autenticados
@@ -252,13 +251,33 @@ app.get("/api/perfil", authMiddleware, (req, res) => {
   });
 });
 
-// Manejo de rutas no encontradas
-app.use("*", (req, res) => {
-  res.status(404).json({
-    error: "Ruta no encontrada",
-    path: req.originalUrl,
-  });
-});
+// Ruta protegida solo para administradores
+app.get(
+  "/api/admin/dashboard",
+  authMiddleware,
+  requireRole(["administrador"]),
+  (req, res) => {
+    res.json({
+      message: "✅ Acceso permitido a dashboard de administrador",
+      user: req.user,
+      data: "Información confidencial para administradores",
+    });
+  }
+);
+
+// Ruta protegida solo para especialistas
+app.get(
+  "/api/especialista/dashboard",
+  authMiddleware,
+  requireRole(["especialista", "administrador"]),
+  (req, res) => {
+    res.json({
+      message: "✅ Acceso permitido a dashboard de especialista",
+      user: req.user,
+      data: "Información para especialistas y administradores",
+    });
+  }
+);
 
 // Manejo de rutas no encontradas
 app.use("*", (req, res) => {

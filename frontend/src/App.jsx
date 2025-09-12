@@ -6,7 +6,6 @@ import "./App.css";
 import Dashboard from "./components/Dashboard/Dashboard";
 
 function App() {
-  const [backendData, setBackendData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -61,9 +60,9 @@ function App() {
       const data = await response.json();
       // Guardar token y datos de usuario en localStorage
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userRole", data.user.rol); // ← Guardar el rol
       localStorage.setItem("user", JSON.stringify(data.user));
       setIsAuthenticated(true); // ← Agrega esta línea
-      setBackendData(data);
       alert("✅ Login exitoso! Token: " + data.token.substring(0, 20) + "...");
 
       // Limpiar formulario
@@ -114,8 +113,7 @@ function App() {
         throw new Error(`Error del servidor: ${response.status}`);
       }
 
-      const data = await response.json();
-      setBackendData(data);
+      await response.json();
       setSuccessMessage("✅ Usuario registrado exitosamente!");
       setError(null);
 
@@ -163,7 +161,6 @@ function App() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setIsAuthenticated(false);
-    setBackendData({});
     alert("✅ Sesión cerrada exitosamente");
   };
 
@@ -235,15 +232,62 @@ function App() {
           {successMessage && (
             <div
               style={{
-                color: "green",
-                background: "#e8f5e9",
-                padding: "12px",
-                borderRadius: "8px",
-                border: "1px solid #4caf50",
-                margin: "15px 0",
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.5)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 1000,
               }}
             >
-              ✅ {successMessage}
+              <div
+                style={{
+                  background: "white",
+                  padding: "30px",
+                  borderRadius: "12px",
+                  textAlign: "center",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                }}
+              >
+                <div style={{ fontSize: "50px", marginBottom: "15px" }}>✅</div>
+                <h3 style={{ marginBottom: "20px", color: "#2e7d32" }}>
+                  {successMessage}
+                </h3>
+                <button
+                  onClick={() => {
+                    setSuccessMessage("");
+                    setPasswordStrength("");
+                    // Cambiar automáticamente a login
+                    document
+                      .querySelectorAll(".form")
+                      .forEach((form) => form.classList.remove("active"));
+                    document
+                      .querySelectorAll(".tab")
+                      .forEach((tab) => tab.classList.remove("active"));
+                    document
+                      .getElementById("login-form")
+                      .classList.add("active");
+                    document
+                      .querySelector('[data-tab="login"]')
+                      .classList.add("active");
+                  }}
+                  style={{
+                    background: "#4361ee",
+                    color: "white",
+                    border: "none",
+                    padding: "12px 25px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                  }}
+                >
+                  Aceptar
+                </button>
+              </div>
             </div>
           )}
         </>
