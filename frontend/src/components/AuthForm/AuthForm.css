@@ -16,56 +16,151 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+.auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
 }
 
 .container {
   display: flex;
-  max-width: 900px;
+  max-width: 1100px;
   width: 100%;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
-.illustration {
+.brand-section {
   flex: 1;
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  padding: 40px;
+  padding: 50px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
   color: white;
-  display: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.illustration img {
-  max-width: 100%;
+.brand-section::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.brand-section::after {
+  content: "";
+  position: absolute;
+  bottom: -80px;
+  left: -80px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.app-brand {
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.logo-container {
   margin-bottom: 20px;
 }
 
-.illustration h2 {
-  font-size: 24px;
-  margin-bottom: 15px;
-  text-align: center;
+.logo-icon {
+  font-size: 50px;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.illustration p {
-  text-align: center;
+.app-brand h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.brand-tagline {
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.auth-description {
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.auth-description h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  color: white;
+}
+
+.auth-description p {
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.features-list {
+  position: relative;
+  z-index: 2;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.feature-icon {
+  font-size: 24px;
+  margin-right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .form-container {
   flex: 1;
-  padding: 40px;
+  padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: white;
 }
 
 .tabs {
@@ -75,13 +170,14 @@ body {
 }
 
 .tab {
-  padding: 12px 24px;
+  padding: 15px 24px;
   cursor: pointer;
   font-weight: 600;
   color: var(--gray);
   transition: var(--transition);
   text-align: center;
   flex: 1;
+  font-size: 16px;
 }
 
 .tab.active {
@@ -110,14 +206,16 @@ body {
 }
 
 .form-title {
-  font-size: 24px;
-  margin-bottom: 5px;
+  font-size: 28px;
+  margin-bottom: 10px;
   color: var(--dark);
+  font-weight: 700;
 }
 
 .form-subtitle {
   color: var(--gray);
-  margin-bottom: 25px;
+  margin-bottom: 30px;
+  font-size: 16px;
 }
 
 .input-group {
@@ -131,6 +229,7 @@ body {
   top: 50%;
   transform: translateY(-50%);
   color: var(--gray);
+  z-index: 1;
 }
 
 .input-group input {
@@ -140,6 +239,7 @@ body {
   border-radius: 8px;
   font-size: 16px;
   transition: var(--transition);
+  position: relative;
 }
 
 .input-group input:focus {
@@ -197,12 +297,18 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
+  margin-top: 10px;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--secondary);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .divider {
@@ -227,6 +333,7 @@ body {
   color: var(--gray);
   position: relative;
   z-index: 1;
+  font-size: 14px;
 }
 
 .social-login {
@@ -284,22 +391,101 @@ body {
   text-decoration: underline;
 }
 
-@media (min-width: 768px) {
-  .illustration {
-    display: flex;
-  }
+.password-strength {
+  font-size: 14px;
+  margin-top: 5px;
+  margin-bottom: 15px;
 }
 
-@media (max-width: 767px) {
+.password-strength.muy-fuerte {
+  color: #28a745;
+}
+
+.password-strength.fuerte {
+  color: #17a2b8;
+}
+
+.password-strength.media {
+  color: #ffc107;
+}
+
+.password-strength.débil {
+  color: #dc3545;
+}
+
+.password-error {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+/* Estilos responsivos */
+@media (max-width: 992px) {
   .container {
     flex-direction: column;
+    max-width: 500px;
   }
 
-  .illustration {
-    padding: 30px;
+  .brand-section {
+    padding: 40px 30px;
+    text-align: center;
   }
 
   .form-container {
-    padding: 30px;
+    padding: 40px 30px;
+  }
+
+  .app-brand {
+    margin-bottom: 30px;
+  }
+
+  .auth-description {
+    margin-bottom: 30px;
+  }
+
+  .app-brand h1 {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .auth-container {
+    padding: 15px;
+  }
+
+  .brand-section,
+  .form-container {
+    padding: 30px 20px;
+  }
+
+  .name-fields {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .app-brand h1 {
+    font-size: 2rem;
+  }
+
+  .brand-tagline {
+    font-size: 1rem;
+  }
+
+  .auth-description h2 {
+    font-size: 1.5rem;
+  }
+
+  .auth-description p {
+    font-size: 1rem;
+  }
+
+  .form-title {
+    font-size: 24px;
+  }
+
+  .tab {
+    padding: 12px 15px;
+    font-size: 14px;
   }
 }

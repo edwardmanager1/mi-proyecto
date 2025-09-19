@@ -1,6 +1,4 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import AuthForm from "./components/AuthForm/AuthForm";
 import "./App.css";
 import Dashboard from "./components/Dashboard/Dashboard";
@@ -168,36 +166,10 @@ function App() {
     <>
       {isAuthenticated ? (
         <>
-          <button
-            onClick={handleLogout}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              background: "#ff4757",
-              color: "white",
-              border: "none",
-              padding: "10px 15px",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            🚪 Cerrar Sesión
-          </button>
-          <Dashboard />
+          <Dashboard onLogout={handleLogout} />
         </>
       ) : (
         <>
-          <div>
-            <a href="https://vite.dev" target="_blank">
-              <img src={viteLogo} className="logo" alt="Vite logo" />
-            </a>
-            <a href="https://react.dev" target="_blank">
-              <img src={reactLogo} className="logo react" alt="React logo" />
-            </a>
-          </div>
-          <h1>Vite + React + Authentication</h1>
-
           <AuthForm
             onLogin={handleLogin}
             onRegister={handleRegister}

@@ -1,32 +1,32 @@
 import "./Dashboard.css";
+import AdminPanel from "./AdminPanel";
+import DashboardLayout from "../Layout/DashboardLayout";
 
-function Dashboard() {
+function Dashboard({ onLogout }) {
   const userRole = localStorage.getItem("userRole");
-  const userName = localStorage.getItem("user")
-    ? JSON.parse(localStorage.getItem("user")).nombre
-    : "Usuario";
 
   return (
-    <div className="dashboard">
-      <h1>🎯 Dashboard de Marketing Digital</h1>
-      <p>
-        Bienvenido/a, {userName} ({userRole})
-      </p>
+    <DashboardLayout onLogout={onLogout}>
+      <div className="dashboard-content">
+        <h1>🎯 Dashboard de Marketing Digital</h1>
 
-      {userRole === "administrador" && (
-        <div className="admin-section">
-          <h2>Panel de Administrador</h2>
-          <p>Opciones exclusivas para administradores</p>
-        </div>
-      )}
+        {userRole === "administrador" && <AdminPanel />}
 
-      {userRole === "especialista" && (
-        <div className="specialist-section">
-          <h2>Panel de Especialista</h2>
-          <p>Opciones para especialistas</p>
-        </div>
-      )}
-    </div>
+        {userRole === "especialista" && (
+          <div className="specialist-section">
+            <h2>Panel de Especialista</h2>
+            <p>Opciones para especialistas</p>
+          </div>
+        )}
+
+        {userRole === "usuario" && (
+          <div className="user-section">
+            <h2>Panel de Usuario</h2>
+            <p>Bienvenido al sistema de marketing digital</p>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }
 
