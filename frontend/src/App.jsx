@@ -2,6 +2,7 @@ import { useState } from "react";
 import AuthForm from "./components/AuthForm/AuthForm";
 import "./App.css";
 import Dashboard from "./components/Dashboard/Dashboard";
+import ErrorModal from "./components/ErrorModal";
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -11,6 +12,8 @@ function App() {
   );
   const [passwordStrength, setPasswordStrength] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false); // Estado para controlar el modal
+  const [errorMessage, setErrorMessage] = useState(""); // Mensaje de error para el modal
 
   // Primero define validatePasswordStrength
   const validatePasswordStrength = (password) => {
@@ -43,6 +46,8 @@ function App() {
     setError(null);
 
     try {
+      console.log("Enviando datos de login:", loginData);
+
       const response = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: {
@@ -51,16 +56,48 @@ function App() {
         body: JSON.stringify(loginData),
       });
 
+      console.log("Respuesta del servidor - Status:", response.status);
+      console.log("Respuesta del servidor - OK:", response.ok);
+
+      // Primero verificar si hay error de conexión
       if (!response.ok) {
-        throw new Error(`Error del servidor: ${response.status}`);
+        let errorMessage = "";
+
+        try {
+          const errorData = await response.json();
+          console.log("Datos de error del servidor:", errorData);
+          errorMessage =
+            errorData.error || errorData.message || `Error ${response.status}`;
+        } catch (parseError) {
+          console.log("No se pudo parsear respuesta de error:", parseError);
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+
+        // Verificar el tipo de error basado en el mensaje
+        if (
+          errorMessage.toLowerCase().includes("contraseña") ||
+          errorMessage.toLowerCase().includes("password")
+        ) {
+          throw new Error("Contraseña incorrecta");
+        } else if (
+          errorMessage.toLowerCase().includes("usuario") ||
+          errorMessage.toLowerCase().includes("user") ||
+          response.status === 404
+        ) {
+          throw new Error("Usuario no registrado en la aplicación");
+        } else {
+          throw new Error(errorMessage);
+        }
       }
 
       const data = await response.json();
+      console.log("Login exitoso - Datos:", data);
+
       // Guardar token y datos de usuario en localStorage
       localStorage.setItem("token", data.token);
-      localStorage.setItem("userRole", data.user.rol); // ← Guardar el rol
+      localStorage.setItem("userRole", data.user.rol);
       localStorage.setItem("user", JSON.stringify(data.user));
-      setIsAuthenticated(true); // ← Agrega esta línea
+      setIsAuthenticated(true);
       alert("✅ Login exitoso! Token: " + data.token.substring(0, 20) + "...");
 
       // Limpiar formulario
@@ -69,8 +106,19 @@ function App() {
         password: "",
       });
     } catch (err) {
+      console.log("Error capturado:", err.message);
+
+      // Mostrar error en el modal
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("Network Error")
+      ) {
+        setErrorMessage("Error de conexión. Verifica tu internet.");
+      } else {
+        setErrorMessage(err.message);
+      }
+      setShowErrorModal(true);
       setError(err.message);
-      console.error("Error en login:", err);
     } finally {
       setLoading(false);
     }
@@ -83,7 +131,6 @@ function App() {
     if (registerData.password !== registerData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       setLoading(false);
-
       return; // Detiene la ejecución
     }
 
@@ -126,6 +173,9 @@ function App() {
 
       // Cambiar a login después de registrar
     } catch (err) {
+      // Mostrar error en el modal
+      setErrorMessage(err.message);
+      setShowErrorModal(true);
       setError(err.message);
       console.error("Error en registro:", err);
     } finally {
@@ -162,6 +212,13 @@ function App() {
     alert("✅ Sesión cerrada exitosamente");
   };
 
+  // Función para cerrar el modal de error
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+    setErrorMessage("");
+    setError(null);
+  };
+
   return (
     <>
       {isAuthenticated ? (
@@ -186,8 +243,15 @@ function App() {
             }}
           />
 
-          {/* Mostrar errores */}
-          {error && (
+          {/* Modal de error */}
+          <ErrorModal
+            isOpen={showErrorModal}
+            onClose={handleCloseErrorModal}
+            message={errorMessage}
+          />
+
+          {/* Mostrar errores (se mantiene por compatibilidad pero se ocultará cuando showErrorModal esté activo) */}
+          {error && !showErrorModal && (
             <div
               style={{
                 color: "red",
@@ -267,4 +331,5 @@ function App() {
     </>
   );
 }
+
 export default App;

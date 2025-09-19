@@ -1,4 +1,6 @@
+import React from "react";
 import "./AuthForm.css";
+import ErrorModal from "../ErrorModal";
 
 function AuthForm({
   onLogin,
@@ -12,7 +14,12 @@ function AuthForm({
   passwordStrength,
   onTabChange,
 }) {
+  const [showErrorModal, setShowErrorModal] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
   const handleTabClick = (tabName) => {
+    setShowErrorModal(false);
+    setErrorMessage("");
     document
       .querySelectorAll(".form")
       .forEach((form) => form.classList.remove("active"));
@@ -267,6 +274,12 @@ function AuthForm({
             </div>
           </form>
         </div>
+
+        <ErrorModal
+          isOpen={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          message={errorMessage}
+        />
       </div>
     </div>
   );
