@@ -1,134 +1,72 @@
-import React, { useState, useEffect } from "react";
-import "./DashboardLayout.css";
+import React from "react";
+import UserProfile from "../UserProfile/UserProfile";
 
-function DashboardLayout({ children, onLogout }) {
-  // Obtener datos del usuario desde localStorage
-  const [userData, setUserData] = useState({});
-  const [userRole, setUserRole] = useState("");
-
-  useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("user") || "{}");
-    const role = localStorage.getItem("userRole") || "";
-    setUserData(data);
-    setUserRole(role);
-  }, []);
-
-  // Función MD5 más robusta para Gravatar
-  const md5 = (inputString) => {
-    if (!inputString) return "00000000000000000000000000000000";
-
-    // Convertir string a array de bytes
-    const inputBytes = new TextEncoder().encode(
-      inputString.toLowerCase().trim()
-    );
-
-    // Generar hash (versión simplificada para demostración)
-    // En una aplicación real, sería mejor usar una librería MD5
-    let h = 0;
-    for (let i = 0; i < inputBytes.length; i++) {
-      h = (Math.imul(31, h) + inputBytes[i]) | 0;
-    }
-
-    // Convertir a string hexadecimal
-    return Math.abs(h).toString(16).padStart(32, "0");
-  };
-
-  // Determinar si el usuario es administrador
-  const isAdmin = userRole === "admin";
-
-  // Extraer nombre y apellido
-  const nombre = userData.nombre || "Usuario";
-  const apellido = userData.apellido || "";
-  const role = userRole || "user";
-  const email = userData.email || "example@example.com";
-
+const DashboardLayout = ({ children, onLogout }) => {
   return (
-    <div className="dashboard-layout">
+    <div className="dashboard-layout flex h-screen">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <h2>MarketingPro</h2>
+      <div className="sidebar bg-gradient-to-b from-purple-800 to-indigo-800 text-white w-64 p-4">
+        {/* Logo */}
+        <div className="logo-section mb-8">
+          <h1 className="text-2xl font-bold text-white">MarketingPro</h1>
+          <p className="text-purple-200 text-sm">Digital Analytics Platform</p>
         </div>
 
-        <nav className="sidebar-menu">
-          <div className="menu-section">
-            <h3>Navegación Principal</h3>
-            <ul>
-              <li>
-                <a href="#" className="menu-item active">
-                  🏠 Dashboard
-                </a>
-              </li>
-              <li>
-                <a href="#" className="menu-item">
-                  📊 Analytics
-                </a>
-              </li>
-              <li>
-                <a href="#" className="menu-item">
-                  👥 Usuarios
-                </a>
-              </li>
-            </ul>
-          </div>
+        {/* Perfil de usuario */}
+        <UserProfile />
 
-          {isAdmin && (
-            <div className="menu-section">
-              <h3>Administración</h3>
-              <ul>
-                <li>
-                  <a href="#" className="menu-item">
-                    ⚙️ Configuración
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="menu-item">
-                    🔐 Permisos
-                  </a>
-                </li>
-              </ul>
-            </div>
-          )}
+        {/* Separador */}
+        <div className="my-6 border-t border-purple-600"></div>
+
+        {/* Navegación */}
+        <nav className="navigation">
+          <ul className="space-y-2">
+            <li>
+              <a
+                href="#"
+                className="flex items-center p-2 rounded-lg bg-purple-700"
+              >
+                <span>📊</span>
+                <span className="ml-3">Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="flex items-center p-2 rounded-lg hover:bg-purple-700"
+              >
+                <span>📈</span>
+                <span className="ml-3">Analytics</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="flex items-center p-2 rounded-lg hover:bg-purple-700"
+              >
+                <span>👥</span>
+                <span className="ml-3">Users</span>
+              </a>
+            </li>
+          </ul>
         </nav>
 
-        {/* Footer con botón de cerrar sesión */}
-        <div className="sidebar-footer">
-          <button onClick={onLogout} className="logout-btn">
-            🚪 Cerrar Sesión
+        {/* Logout */}
+        <div className="mt-8 pt-6 border-t border-purple-600">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center justify-center p-2 rounded-lg bg-red-600 hover:bg-red-700"
+          >
+            <span>🚪</span>
+            <span className="ml-2">Logout</span>
           </button>
         </div>
-      </aside>
+      </div>
 
       {/* Main Content */}
-      <main className="main-content">
-        <header className="main-header">
-          <div className="header-profile">
-            <div className="profile-image">
-              <img
-                src={`https://www.gravatar.com/avatar/${md5(
-                  email
-                )}?s=80&d=identicon`}
-                alt="Avatar"
-                className="gravatar-img"
-                onError={(e) => {
-                  e.target.src = `https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y&s=80`;
-                }}
-              />
-            </div>
-            <div className="profile-info">
-              <div className="profile-name">
-                {nombre} {apellido}
-              </div>
-              <div className="profile-role">{role}</div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content */}
-        <div className="content-wrapper">{children}</div>
-      </main>
+      <div className="main-content flex-1 overflow-auto">{children}</div>
     </div>
   );
-}
+};
 
 export default DashboardLayout;

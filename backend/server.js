@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const pool = require("./src/config/database");
+const ga4Routes = require("./src/routes/ga4Routes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
       test: "/api/test",
       db_test: "/api/db-test",
       admin: "/api/admin/dashboard (solo administradores)",
+      ga4: "/api/ga4/* (métricas del dashboard)",
     },
   });
 });
@@ -278,6 +280,9 @@ app.get(
     });
   }
 );
+
+// RUTAS GA4 - Métricas del dashboard
+app.use("/api/ga4", ga4Routes);
 
 // Manejo de rutas no encontradas
 app.use("*", (req, res) => {
